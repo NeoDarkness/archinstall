@@ -245,6 +245,7 @@ def _boot_partitions(sector_size: SectorSize, using_gpt: bool) -> list[Partition
 			start=start,
 			length=efi_size,
 			mountpoint=Path('/efi'),
+			mount_options=['umask=0077'],
 			fs_type=FilesystemType.Fat32,
 			flags=[PartitionFlag.ESP],
 		))
