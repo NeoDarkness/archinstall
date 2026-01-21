@@ -231,23 +231,40 @@ def select_lvm_config(
 	return None
 
 
-def _boot_partition(sector_size: SectorSize, using_gpt: bool) -> PartitionModification:
-	flags = [PartitionFlag.BOOT]
-	size = Size(1, Unit.GiB, sector_size)
-	start = Size(1, Unit.MiB, sector_size)
-	if using_gpt:
-		flags.append(PartitionFlag.ESP)
+def _boot_partitions(sector_size: SectorSize, using_gpt: bool) -> list[PartitionModification]:
+	partitions: list[PartitionModification] = []
 
-	# boot partition
-	return PartitionModification(
+	start = Size(1, Unit.MiB, sector_size)
+
+	if using_gpt:
+		# ESP /efi
+		efi_size = Size(512, Unit.MiB, sector_size)
+		partitions.append(PartitionModification(
+			status=ModificationStatus.Create,
+			type=PartitionType.Primary,
+			start=start,
+			length=efi_size,
+			mountpoint=Path('/efi'),
+			mount_options=['umask=0077'],
+			fs_type=FilesystemType.Fat32,
+			flags=[PartitionFlag.ESP],
+		))
+
+		start = start + efi_size
+
+	# /boot
+	boot_size = Size(1, Unit.GiB, sector_size)
+	partitions.append(PartitionModification(
 		status=ModificationStatus.Create,
 		type=PartitionType.Primary,
 		start=start,
-		length=size,
-		mountpoint=Path('/efi'),
-		fs_type=FilesystemType.Fat32,
-		flags=flags,
-	)
+		length=boot_size,
+		mountpoint=Path('/boot'),
+		fs_type=FilesystemType.Ext4,
+		flags=[PartitionFlag.BOOT],
+	))
+
+	return partitions
 
 
 def select_main_filesystem_format() -> FilesystemType:
