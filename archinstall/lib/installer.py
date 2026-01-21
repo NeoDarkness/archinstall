@@ -1033,6 +1033,22 @@ class Installer:
 		else:
 			raise ValueError('Archinstall currently only supports setting up swap on zram')
 
+	def configure_plymouth(self) -> None:
+		info('Configuring Plymouth')
+		self.add_additional_packages('plymouth')
+
+		if 'systemd' in self._hooks:
+			if 'sd-plymouth' not in self._hooks:
+				self._hooks.insert(self._hooks.index('systemd') + 1, 'sd-plymouth')
+		elif 'udev' in self._hooks:
+			if 'plymouth' not in self._hooks:
+				self._hooks.insert(self._hooks.index('udev') + 1, 'plymouth')
+
+		if 'quiet' not in self._kernel_params:
+			self._kernel_params.append('quiet')
+		if 'splash' not in self._kernel_params:
+			self._kernel_params.append('splash')
+
 	def _get_efi_partition(self) -> PartitionModification | None:
 		for layout in self._disk_config.device_modifications:
 			if partition := layout.get_efi_partition():
@@ -1877,7 +1893,7 @@ class Installer:
 		if not sudoers_dir.exists():
 			sudoers_dir.mkdir(parents=True)
 			# Guarantees sudoer confs directory recommended perms
-			sudoers_dir.chmod(0o440)
+			sudoers_dir.chmod(0o750)
 			# Appends a reference to the sudoers file, because if we are here sudoers.d did not exist yet
 			with open(self.target / 'etc/sudoers', 'a') as sudoers:
 				sudoers.write('@includedir /etc/sudoers.d\n')
@@ -1915,12 +1931,22 @@ class Installer:
 					handled_by_plugin = result
 
 		if not handled_by_plugin:
+			if user.shell == '/bin/zsh':
+				self.pacman.strap(['zsh', 'zsh-completions'])
+			elif user.shell == '/bin/fish':
+				self.pacman.strap(['fish'])
+
 			info(f'Creating user {user.username}')
 
 			cmd = 'useradd -m'
 
 			if user.sudo:
 				cmd += ' -G wheel'
+
+			cmd += f' -s {user.shell}'
+
+			if user.full_name:
+				cmd += f' -c {shlex.quote(user.full_name)}'
 
 			cmd += f' {user.username}'
 

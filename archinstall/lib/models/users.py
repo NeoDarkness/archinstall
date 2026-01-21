@@ -108,6 +108,8 @@ UserSerialization = TypedDict(
 		'sudo': bool,
 		'groups': list[str],
 		'enc_password': str | None,
+		'shell': NotRequired[str],
+		'full_name': NotRequired[str | None],
 	},
 )
 
@@ -159,11 +161,13 @@ class User:
 	password: Password
 	sudo: bool
 	groups: list[str] = field(default_factory=list)
+	shell: str = '/bin/bash'
+	full_name: str | None = None
 
 	@override
 	def __str__(self) -> str:
 		# safety overwrite to make sure password is not leaked
-		return f'User({self.username=}, {self.sudo=}, {self.groups=})'
+		return f'User({self.username=}, {self.sudo=}, {self.groups=}, {self.shell=}, {self.full_name=})'
 
 	def table_data(self) -> dict[str, str | bool | list[str]]:
 		return {
@@ -171,6 +175,8 @@ class User:
 			'password': self.password.hidden(),
 			'sudo': self.sudo,
 			'groups': self.groups,
+			'shell': self.shell,
+			'full_name': self.full_name if self.full_name else '',
 		}
 
 	def json(self) -> UserSerialization:
@@ -179,6 +185,8 @@ class User:
 			'enc_password': self.password.enc_password,
 			'sudo': self.sudo,
 			'groups': self.groups,
+			'shell': self.shell,
+			'full_name': self.full_name,
 		}
 
 	@classmethod
@@ -209,6 +217,8 @@ class User:
 				password=password,
 				sudo=entry.get('sudo', False) is True,
 				groups=groups,
+				shell=entry.get('shell', '/bin/bash'),
+				full_name=entry.get('full_name', None),
 			)
 
 			users.append(user)

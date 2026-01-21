@@ -76,6 +76,7 @@ class ArchConfig:
 	timezone: str = 'UTC'
 	services: list[str] = field(default_factory=list)
 	custom_commands: list[str] = field(default_factory=list)
+	plymouth: bool = False
 
 	def unsafe_json(self) -> dict[str, Any]:
 		config: dict[str, list[UserSerialization] | str | None] = {}
@@ -108,6 +109,7 @@ class ArchConfig:
 			'timezone': self.timezone,
 			'services': self.services,
 			'custom_commands': self.custom_commands,
+			'plymouth': self.plymouth,
 			'bootloader_config': self.bootloader_config.json() if self.bootloader_config else None,
 			'app_config': self.app_config.json() if self.app_config else None,
 			'auth_config': self.auth_config.json() if self.auth_config else None,
@@ -249,6 +251,8 @@ class ArchConfig:
 
 		if custom_commands := args_config.get('custom_commands', []):
 			arch_config.custom_commands = custom_commands
+
+		arch_config.plymouth = args_config.get('plymouth', False)
 
 		return arch_config
 

@@ -45,6 +45,24 @@ def ask_ntp(preset: bool = True) -> bool:
 			raise ValueError('Unhandled return type')
 
 
+def ask_plymouth(preset: bool = False) -> bool:
+	prompt = tr('Would you like to enable Plymouth (boot splash)?') + '\n'
+
+	result = Confirmation(
+		header=prompt,
+		allow_skip=True,
+		preset=preset,
+	).show()
+
+	match result.type_:
+		case ResultType.Skip:
+			return preset
+		case ResultType.Selection:
+			return result.get_value()
+		case _:
+			raise ValueError('Unhandled return type')
+
+
 def ask_hostname(preset: str | None = None) -> str | None:
 	result = Input(
 		header=tr('Enter a hostname'),

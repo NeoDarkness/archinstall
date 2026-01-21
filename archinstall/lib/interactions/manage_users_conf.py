@@ -1,9 +1,9 @@
 import re
 from typing import override
 
-from archinstall.lib.menu.helpers import Confirmation, Input
+from archinstall.lib.menu.helpers import Confirmation, Input, Selection
 from archinstall.lib.translationhandler import tr
-from archinstall.tui.ui.menu_item import MenuItem
+from archinstall.tui.ui.menu_item import MenuItem, MenuItemGroup
 from archinstall.tui.ui.result import ResultType
 
 from ..menu.list_manager import ListManager
@@ -103,7 +103,37 @@ class UserList(ListManager[User]):
 			case _:
 				raise ValueError('Unhandled result type')
 
-		return User(username, password, sudo)
+		header += f'{tr("Sudo")}: {sudo}\n'
+		prompt = f'{header}\n' + tr('Enter full name for this user (optional)')
+
+		full_name_result = Input(
+			header=prompt,
+			allow_skip=True,
+		).show()
+
+		full_name = None
+		if full_name_result.type_ == ResultType.Selection:
+			full_name = full_name_result.get_value()
+
+		header += f'{tr("Full name")}: {full_name if full_name else ""}\n'
+		prompt = f'{header}\n' + tr('Select a shell for this user')
+
+		shells = ['/bin/bash', '/bin/zsh', '/bin/fish']
+		shell_items = [MenuItem(s, value=s) for s in shells]
+		shell_group = MenuItemGroup(shell_items, sort_items=True)
+		shell_group.set_default_by_value('/bin/bash')
+
+		shell_result = Selection(
+			shell_group,
+			header=prompt,
+			allow_skip=False,
+		).show()
+
+		shell = '/bin/bash'
+		if shell_result.type_ == ResultType.Selection:
+			shell = shell_result.get_value()
+
+		return User(username, password, sudo, shell=shell, full_name=full_name)
 
 
 def ask_for_additional_users(prompt: str = '', defined_users: list[User] = []) -> list[User]:

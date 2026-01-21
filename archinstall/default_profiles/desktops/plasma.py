@@ -12,12 +12,40 @@ class PlasmaProfile(XorgProfile):
 	@override
 	def packages(self) -> list[str]:
 		return [
-			'plasma-desktop',
+			'plasma-meta',
+			'kde-system-meta',
 			'konsole',
 			'kate',
-			'dolphin',
 			'ark',
-			'plasma-workspace',
+			'dolphin-plugins',
+			'firefox',
+			'gwengwenview',
+			'kamoso',
+			'elisa',
+			'ffmpegthumbs',
+			'kdegraphics-thumbnailers',
+			'partitionmanager',
+			'kolourpaint',
+			'okular',
+			'krdc',
+			'kgpg',
+			'kfind',
+			'kwalletmanager',
+			'filelight',
+			'isoimagewriter',
+			'kcalc',
+			'kdebugsettings',
+			'kdf',
+			'kdialog',
+			'keditbookmarks',
+			'kamera',
+			'kdeconnect',
+			'krfb',
+			'kdenetwork-filesharing',
+			'kio-gdrive',
+			'colord-kde',
+			'plasma-keyboard',
+			'plymouth-kcm'
 		]
 
 	@property

@@ -20,6 +20,7 @@ from .interactions.general_conf import (
 	ask_for_a_timezone,
 	ask_hostname,
 	ask_ntp,
+	ask_plymouth,
 )
 from .interactions.network_menu import ask_to_configure_network
 from .interactions.system_conf import ask_for_swap, select_kernel
@@ -160,6 +161,13 @@ class GlobalMenu(AbstractMenu[None]):
 				value=True,
 				preview_action=self._prev_ntp,
 				key='ntp',
+			),
+			MenuItem(
+				text=tr('Plymouth'),
+				action=ask_plymouth,
+				value=False,
+				preview_action=self._prev_plymouth,
+				key='plymouth',
 			),
 			MenuItem(
 				text='',
@@ -359,6 +367,13 @@ class GlobalMenu(AbstractMenu[None]):
 	def _prev_ntp(self, item: MenuItem) -> str | None:
 		if item.value is not None:
 			output = f'{tr("NTP")}: '
+			output += tr('Enabled') if item.value else tr('Disabled')
+			return output
+		return None
+
+	def _prev_plymouth(self, item: MenuItem) -> str | None:
+		if item.value is not None:
+			output = f'{tr("Plymouth")}: '
 			output += tr('Enabled') if item.value else tr('Disabled')
 			return output
 		return None

@@ -244,7 +244,7 @@ def _boot_partition(sector_size: SectorSize, using_gpt: bool) -> PartitionModifi
 		type=PartitionType.Primary,
 		start=start,
 		length=size,
-		mountpoint=Path('/boot'),
+		mountpoint=Path('/efi'),
 		fs_type=FilesystemType.Fat32,
 		flags=flags,
 	)
@@ -321,10 +321,8 @@ def get_default_btrfs_subvols() -> list[SubvolumeModification]:
 	# https://unix.stackexchange.com/questions/246976/btrfs-subvolume-uuid-clash
 	# https://github.com/classy-giraffe/easy-arch/blob/main/easy-arch.sh
 	return [
-		SubvolumeModification(Path('@'), Path('/')),
-		SubvolumeModification(Path('@home'), Path('/home')),
-		SubvolumeModification(Path('@log'), Path('/var/log')),
-		SubvolumeModification(Path('@pkg'), Path('/var/cache/pacman/pkg')),
+		SubvolumeModification(Path('root'), Path('/')),
+		SubvolumeModification(Path('home'), Path('/home')),
 	]
 
 
