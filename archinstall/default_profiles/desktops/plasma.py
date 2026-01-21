@@ -13,7 +13,8 @@ class PlasmaProfile(XorgProfile):
 	def packages(self) -> list[str]:
 		return [
 			'plasma-meta',
-			'kde-system-meta',
+			# 'kde-system-meta',
+			'dolphin',
 			'konsole',
 			'kate',
 			'ark',
@@ -46,6 +47,10 @@ class PlasmaProfile(XorgProfile):
 			'colord-kde',
 			'plasma-keyboard',
 			'plymouth-kcm'
+   			'kde-inotify-survey',
+			'khelpcenter',
+			'kio-admin',
+			'kjournald',
 		]
 
 	@property
