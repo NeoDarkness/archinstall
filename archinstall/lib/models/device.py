@@ -952,7 +952,7 @@ class PartitionModification:
 		return PartitionFlag.ESP in self.flags
 
 	def is_boot(self) -> bool:
-		return PartitionFlag.BOOT in self.flags
+		return PartitionFlag.BOOT in self.flags or PartitionFlag.XBOOTLDR in self.flags
 
 	def is_root(self) -> bool:
 		if self.mountpoint is not None:

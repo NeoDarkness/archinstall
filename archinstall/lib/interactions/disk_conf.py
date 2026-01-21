@@ -254,6 +254,7 @@ def _boot_partitions(sector_size: SectorSize, using_gpt: bool) -> list[Partition
 
 	# /boot
 	boot_size = Size(1, Unit.GiB, sector_size)
+	boot_flags = [PartitionFlag.XBOOTLDR] if using_gpt else [PartitionFlag.BOOT]
 	partitions.append(PartitionModification(
 		status=ModificationStatus.Create,
 		type=PartitionType.Primary,
@@ -261,7 +262,7 @@ def _boot_partitions(sector_size: SectorSize, using_gpt: bool) -> list[Partition
 		length=boot_size,
 		mountpoint=Path('/boot'),
 		fs_type=FilesystemType.Ext4,
-		flags=[PartitionFlag.BOOT],
+		flags=boot_flags,
 	))
 
 	return partitions
@@ -383,8 +384,11 @@ def suggest_single_disk_layout(
 	# Used for reference: https://wiki.archlinux.org/title/partitioning
 
 	boot_partitions = _boot_partitions(sector_size, using_gpt)
+	current_sector = 0
+
 	for boot_partition in boot_partitions:
 		device_modification.add_partition(boot_partition)
+		current_sector = boot_partition.start + boot_partition.length
 
 	if separate_home is False or using_subvolumes or total_size < min_size_to_allow_home_part:
 		using_home_partition = False
@@ -402,7 +406,7 @@ def suggest_single_disk_layout(
 		using_home_partition = result.item() == MenuItem.yes()
 
 	# root partition
-	root_start = boot_partition.start + boot_partition.length
+	root_start = current_sector
 
 	# Set a size for / (/root)
 	if using_home_partition:
@@ -508,8 +512,9 @@ def suggest_multi_disk_layout(
 	using_gpt = device_handler.partition_table.is_gpt()
 
 	# add boot partition to the root device
-	boot_partition = _boot_partition(root_device_sector_size, using_gpt)
-	root_device_modification.add_partition(boot_partition)
+	boot_partitions = _boot_partitions(root_device_sector_size, using_gpt)
+	for boot_partition in boot_partitions:
+		root_device_modification.add_partition(boot_partition)
 
 	root_start = boot_partition.start + boot_partition.length
 	root_length = root_device.device_info.total_size - root_start
