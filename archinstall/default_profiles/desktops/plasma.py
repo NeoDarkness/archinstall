@@ -19,7 +19,7 @@ class PlasmaProfile(XorgProfile):
 			'ark',
 			'dolphin-plugins',
 			'firefox',
-			'gwengwenview',
+			'gwenview',
 			'kamoso',
 			'elisa',
 			'ffmpegthumbs',
