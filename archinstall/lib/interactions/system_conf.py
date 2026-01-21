@@ -85,7 +85,7 @@ def select_driver(options: list[GfxDriver] = [], preset: GfxDriver | None = None
 
 	header = ''
 	if SysInfo.has_amd_graphics():
-		header += tr('For the best compatibility with your AMD hardware, you may want to use either the all open-source or AMD / ATI options.') + '\n'
+		header += tr('For the best compatibility with your AMD hardware, you may want to use the all open-source driver, or select the appropriate AMD driver for your GPU.') + '\n'
 	if SysInfo.has_intel_graphics():
 		header += tr('For the best compatibility with your Intel hardware, you may want to use either the all open-source or Intel options.\n')
 	if SysInfo.has_nvidia_graphics():

@@ -58,7 +58,8 @@ class GfxPackage(Enum):
 
 class GfxDriver(Enum):
 	AllOpenSource = 'All open-source'
-	AmdOpenSource = 'AMD / ATI (open-source)'
+	AmdAtiOpenSource = 'AMD / ATI (open-source for older GPUs)'
+	AmdGpuOpenSource = 'AMD (open-source for modern GPUs)'
 	IntelOpenSource = 'Intel (open-source)'
 	NvidiaOpenKernel = 'Nvidia (open kernel module for newer GPUs, Turing+)'
 	NvidiaOpenSource = 'Nvidia (open-source nouveau driver)'
@@ -98,11 +99,18 @@ class GfxDriver(Enum):
 					GfxPackage.VulkanIntel,
 					GfxPackage.VulkanNouveau,
 				]
-			case GfxDriver.AmdOpenSource:
+			case GfxDriver.AmdAtiOpenSource:
+				packages += [
+					GfxPackage.Mesa,
+					GfxPackage.Xf86VideoAti,
+					GfxPackage.Xf86VideoAmdgpu,
+					GfxPackage.LibvaMesaDriver,
+					GfxPackage.VulkanRadeon,
+				]
+			case GfxDriver.AmdGpuOpenSource:
 				packages += [
 					GfxPackage.Mesa,
 					GfxPackage.Xf86VideoAmdgpu,
-					GfxPackage.Xf86VideoAti,
 					GfxPackage.LibvaMesaDriver,
 					GfxPackage.VulkanRadeon,
 				]
