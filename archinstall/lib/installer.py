@@ -1039,7 +1039,7 @@ class Installer:
 
 		if 'systemd' in self._hooks:
 			if 'sd-plymouth' not in self._hooks:
-				self._hooks.insert(self._hooks.index('systemd') + 1, 'sd-plymouth')
+				self._hooks.insert(self._hooks.index('systemd') + 1, 'plymouth')
 		elif 'udev' in self._hooks:
 			if 'plymouth' not in self._hooks:
 				self._hooks.insert(self._hooks.index('udev') + 1, 'plymouth')
