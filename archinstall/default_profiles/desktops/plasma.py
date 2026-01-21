@@ -46,7 +46,7 @@ class PlasmaProfile(XorgProfile):
 			'kio-gdrive',
 			'colord-kde',
 			'plasma-keyboard',
-			'plymouth-kcm'
+			'plymouth-kcm',
    			'kde-inotify-survey',
 			'khelpcenter',
 			'kio-admin',
