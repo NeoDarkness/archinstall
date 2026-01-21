@@ -245,7 +245,6 @@ def _boot_partitions(sector_size: SectorSize, using_gpt: bool) -> list[Partition
 			start=start,
 			length=efi_size,
 			mountpoint=Path('/efi'),
-			mount_options=['umask=0077'],
 			fs_type=FilesystemType.Fat32,
 			flags=[PartitionFlag.ESP],
 		))
@@ -382,8 +381,9 @@ def suggest_single_disk_layout(
 
 	# Used for reference: https://wiki.archlinux.org/title/partitioning
 
-	boot_partition = _boot_partition(sector_size, using_gpt)
-	device_modification.add_partition(boot_partition)
+	boot_partitions = _boot_partitions(sector_size, using_gpt)
+	for boot_partition in boot_partitions:
+		device_modification.add_partition(boot_partition)
 
 	if separate_home is False or using_subvolumes or total_size < min_size_to_allow_home_part:
 		using_home_partition = False
