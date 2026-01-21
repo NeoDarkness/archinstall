@@ -816,15 +816,6 @@ class Installer:
 			content = re.sub('\nMODULES=(.*)', f'\nMODULES=({" ".join(self._modules)})', content)
 			content = re.sub('\nBINARIES=(.*)', f'\nBINARIES=({" ".join(self._binaries)})', content)
 			content = re.sub('\nFILES=(.*)', f'\nFILES=({" ".join(self._files)})', content)
-
-			if not self._disk_encryption.hsm_device:
-				# For now, if we don't use HSM we revert to the old
-				# way of setting up encryption hooks for mkinitcpio.
-				# This is purely for stability reasons, we're going away from this.
-				# * systemd -> udev
-				# * sd-vconsole -> keymap
-				self._hooks = [hook.replace('systemd', 'udev').replace('sd-vconsole', 'keymap consolefont') for hook in self._hooks]
-
 			content = re.sub('\nHOOKS=(.*)', f'\nHOOKS=({" ".join(self._hooks)})', content)
 			mkinit.seek(0)
 			mkinit.truncate()
@@ -1783,7 +1774,8 @@ class Installer:
 
 		diff_mountpoint = None
 
-		if efi_partition.mountpoint != Path('/efi'):
+		is_use_efi = efi_partition.mountpoint == Path('/efi')
+		if not is_use_efi:
 			diff_mountpoint = str(efi_partition.mountpoint)
 
 		image_re = re.compile('(.+_image="/([^"]+).+\n)')
@@ -1795,18 +1787,27 @@ class Installer:
 			config = preset.read_text().splitlines(True)
 
 			for index, line in enumerate(config):
-				# Avoid storing redundant image file
-				if m := image_re.match(line):
-					image = self.target / m.group(2)
-					image.unlink(missing_ok=True)
-					config[index] = '#' + m.group(1)
-				elif m := uki_re.match(line):
-					if diff_mountpoint:
-						config[index] = m.group(2) + diff_mountpoint + m.group(3)
-					else:
-						config[index] = m.group(1)
-				elif line.startswith('#default_options='):
-					config[index] = line.removeprefix('#')
+				if is_use_efi:
+					# Comment default_image
+					if line.startswith('default_image='):
+						config[index] = '#' + line
+
+					# Uncomment default_uki
+					elif line.startswith('#default_uki='):
+						config[index] = line[1:]
+				else:
+					# Avoid storing redundant image file
+					if m := image_re.match(line):
+						image = self.target / m.group(2)
+						image.unlink(missing_ok=True)
+						config[index] = '#' + m.group(1)
+					elif m := uki_re.match(line):
+						if diff_mountpoint:
+							config[index] = m.group(2) + diff_mountpoint + m.group(3)
+						else:
+							config[index] = m.group(1)
+					elif line.startswith('#default_options='):
+						config[index] = line.removeprefix('#')
 
 			preset.write_text(''.join(config))
 
