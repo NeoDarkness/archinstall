@@ -173,7 +173,7 @@ class ProfileHandler:
 	def get_custom_profiles(self) -> list[Profile]:
 		return [p for p in self.profiles if p.is_custom_type_profile()]
 
-	def install_greeter(self, install_session: Installer, greeter: GreeterType) -> None:
+	def install_greeter(self, install_session: Installer, greeter: GreeterType, profile: Profile | None = None) -> None:
 		packages = []
 		service = None
 		service_disable = None
@@ -216,6 +216,23 @@ class ProfileHandler:
 
 			with open(path, 'w') as file:
 				file.write(filedata)
+		elif greeter == GreeterType.Sddm and profile and profile.name == 'KDE Plasma':
+			# Enable SDDM wayland and set theme to breeze
+			sddm_dir = install_session.target / 'etc' / 'sddm.conf.d'
+			sddm_dir.mkdir(parents=True, exist_ok=True)
+
+			with open(sddm_dir / 'kde_settings.conf', 'w') as f:
+				f.write('[Theme]\nCurrent=breeze\n')
+
+			with open(sddm_dir / '10-wayland.conf', 'w') as f:
+				wayland_config = (
+					'[General]\n'
+					'DisplayServer=wayland\n'
+					'GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell\n\n'
+					'[Wayland]\n'
+					'CompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1\n'
+				)
+				f.write(wayland_config)
 
 	def install_gfx_driver(self, install_session: Installer, driver: GfxDriver) -> None:
 		debug(f'Installing GFX driver: {driver.value}')
@@ -241,7 +258,7 @@ class ProfileHandler:
 			self.install_gfx_driver(install_session, profile_config.gfx_driver)
 
 		if profile_config.greeter:
-			self.install_greeter(install_session, profile_config.greeter)
+			self.install_greeter(install_session, profile_config.greeter, profile)
 
 	def _import_profile_from_url(self, url: str) -> None:
 		"""
