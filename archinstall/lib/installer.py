@@ -286,7 +286,7 @@ class Installer:
 			# partitions have to mounted in the right order on btrfs the mountpoint will
 			# be empty as the actual subvolumes are getting mounted instead so we'll use
 			# '/' just for sorting
-			sorted_part_mods = sorted(not_pv_part_mods, key=lambda x: x.mountpoint or Path('/'))
+			sorted_part_mods = sorted(not_pv_part_mods, key=lambda x: str(x.mountpoint) if x.mountpoint else '/')
 
 			for part_mod in sorted_part_mods:
 				if luks_handler := luks_handlers.get(part_mod):
@@ -304,7 +304,7 @@ class Installer:
 		debug('Mounting LVM layout')
 
 		for vg in lvm_config.vol_groups:
-			sorted_vol = sorted(vg.volumes, key=lambda x: x.mountpoint or Path('/'))
+			sorted_vol = sorted(vg.volumes, key=lambda x: str(x.mountpoint) if x.mountpoint else '/')
 
 			for vol in sorted_vol:
 				if luks_handler := luks_handlers.get(vol):
@@ -418,7 +418,7 @@ class Installer:
 	) -> None:
 		# Filter out subvolumes without mountpoints to avoid errors when sorting
 		subvols_with_mountpoints = [sv for sv in subvolumes if sv.mountpoint is not None]
-		for subvol in sorted(subvols_with_mountpoints, key=lambda x: x.relative_mountpoint):
+		for subvol in sorted(subvols_with_mountpoints, key=lambda x: str(x.relative_mountpoint)):
 			mountpoint = self.target / subvol.relative_mountpoint
 			options = mount_options + [f'subvol={subvol.name}']
 			device_handler.mount(dev_path, mountpoint, options=options)
@@ -1029,11 +1029,8 @@ class Installer:
 		self.add_additional_packages('plymouth')
 
 		if 'systemd' in self._hooks:
-			if 'sd-plymouth' not in self._hooks:
-				self._hooks.insert(self._hooks.index('systemd') + 1, 'plymouth')
-		elif 'udev' in self._hooks:
 			if 'plymouth' not in self._hooks:
-				self._hooks.insert(self._hooks.index('udev') + 1, 'plymouth')
+				self._hooks.insert(self._hooks.index('systemd') + 1, 'plymouth')
 
 		if 'quiet' not in self._kernel_params:
 			self._kernel_params.append('quiet')

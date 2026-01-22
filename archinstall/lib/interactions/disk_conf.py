@@ -231,40 +231,26 @@ def select_lvm_config(
 	return None
 
 
-def _boot_partitions(sector_size: SectorSize, using_gpt: bool) -> list[PartitionModification]:
-	partitions: list[PartitionModification] = []
-
+def _boot_partition(sector_size: SectorSize, using_gpt: bool) -> PartitionModification:
+	flags = [PartitionFlag.BOOT]
+	mountpoint = Path('/boot')
+	size = Size(1, Unit.GiB, sector_size)
 	start = Size(1, Unit.MiB, sector_size)
-
 	if using_gpt:
-		# ESP /efi
-		efi_size = Size(512, Unit.MiB, sector_size)
-		partitions.append(PartitionModification(
-			status=ModificationStatus.Create,
-			type=PartitionType.Primary,
-			start=start,
-			length=efi_size,
-			mountpoint=Path('/efi'),
-			mount_options=['umask=0077'],
-			fs_type=FilesystemType.Fat32,
-			flags=[PartitionFlag.ESP],
-		))
+		flags.append(PartitionFlag.ESP)
+		mountpoint = Path('/efi')
 
-		start = start + efi_size
-
-	# /boot
-	boot_size = Size(1, Unit.GiB, sector_size)
-	partitions.append(PartitionModification(
+	# boot partition
+	return PartitionModification(
 		status=ModificationStatus.Create,
 		type=PartitionType.Primary,
 		start=start,
-		length=boot_size,
-		mountpoint=Path('/boot'),
-		fs_type=FilesystemType.Ext4,
-		flags=[PartitionFlag.BOOT],
-	))
-
-	return partitions
+		length=size,
+		mountpoint=mountpoint,
+		mount_options=['umask=0077'],
+		fs_type=FilesystemType.Fat32,
+		flags=flags,
+	)
 
 
 def select_main_filesystem_format() -> FilesystemType:
@@ -338,8 +324,10 @@ def get_default_btrfs_subvols() -> list[SubvolumeModification]:
 	# https://unix.stackexchange.com/questions/246976/btrfs-subvolume-uuid-clash
 	# https://github.com/classy-giraffe/easy-arch/blob/main/easy-arch.sh
 	return [
-		SubvolumeModification(Path('root'), Path('/')),
-		SubvolumeModification(Path('home'), Path('/home')),
+		SubvolumeModification(Path('@'), Path('/')),
+		SubvolumeModification(Path('@home'), Path('/home')),
+		SubvolumeModification(Path('@log'), Path('/var/log')),
+		SubvolumeModification(Path('@pkg'), Path('/var/cache/pacman/pkg')),
 	]
 
 
@@ -382,9 +370,8 @@ def suggest_single_disk_layout(
 
 	# Used for reference: https://wiki.archlinux.org/title/partitioning
 
-	boot_partitions = _boot_partitions(sector_size, using_gpt)
-	for boot_partition in boot_partitions:
-		device_modification.add_partition(boot_partition)
+	boot_partition = _boot_partition(sector_size, using_gpt)
+	device_modification.add_partition(boot_partition)
 
 	if separate_home is False or using_subvolumes or total_size < min_size_to_allow_home_part:
 		using_home_partition = False
