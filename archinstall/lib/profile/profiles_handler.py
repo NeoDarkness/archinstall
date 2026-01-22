@@ -217,7 +217,8 @@ class ProfileHandler:
 			with open(path, 'w') as file:
 				file.write(filedata)
 		elif greeter == GreeterType.Sddm and profile and ('KDE Plasma' in profile.current_selection_names() or profile.name == 'KDE Plasma'):
-			# Enable SDDM wayland and set theme to breeze
+			debug('Configuring SDDM for KDE Plasma')
+   			# Enable SDDM wayland and set theme to breeze
 			sddm_dir = install_session.target / 'etc' / 'sddm.conf.d'
 			sddm_dir.mkdir(parents=True, exist_ok=True)
 
