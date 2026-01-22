@@ -12,7 +12,7 @@ class PlasmaProfile(XorgProfile):
 	@override
 	def packages(self) -> list[str]:
 		return [
-			'plasma-meta',
+			'plasma',
 			# 'kde-system-meta',
 			'dolphin',
 			'konsole',
