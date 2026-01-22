@@ -964,7 +964,6 @@ class Installer:
 
 			snapper: dict[str, str] = {
 				'root': '/',
-				'home': '/home',
 			}
 
 			for config_name, mountpoint in snapper.items():
