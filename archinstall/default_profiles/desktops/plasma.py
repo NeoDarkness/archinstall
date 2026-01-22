@@ -36,7 +36,6 @@ class PlasmaProfile(XorgProfile):
 			'isoimagewriter',
 			'kcalc',
 			'kdebugsettings',
-			'kdf',
 			'kdialog',
 			'keditbookmarks',
 			'kamera',
